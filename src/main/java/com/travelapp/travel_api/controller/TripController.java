@@ -24,4 +24,20 @@ public class TripController {
     public TripResponse create(@RequestBody TripRequest req) {
         return tripService.create(req);
     }
+
+    @GetMapping("/{id}")
+    public TripResponse getById(@PathVariable Long id) {
+        return tripService.getById(id);
+    }
+
+    @PutMapping("/{id}")
+    public TripResponse update(@PathVariable Long id, @RequestBody TripRequest req) {
+        return tripService.update(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        tripService.delete(id);
+    }
+
 }
