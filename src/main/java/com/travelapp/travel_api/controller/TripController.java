@@ -15,27 +15,31 @@ public class TripController {
 
     private final TripService tripService;
 
-    @GetMapping
+    //method get all
+    @GetMapping //api/trips
     public List<TripResponse> getAll() {
         return tripService.getAll();
     }
 
-    @PostMapping
+    //method post
+    @PostMapping //api/trips
     public TripResponse create(@RequestBody TripRequest req) {
         return tripService.create(req);
     }
 
-    @GetMapping("/{id}")
+    //method get by id
+    @GetMapping("/{id}") //api/trips/{id}
     public TripResponse getById(@PathVariable Long id) {
         return tripService.getById(id);
     }
 
-    @PutMapping("/{id}")
+    //method put
+    @PutMapping("/{id}") //api/trips/{id}
     public TripResponse update(@PathVariable Long id, @RequestBody TripRequest req) {
         return tripService.update(id, req);
     }
-
-    @DeleteMapping("/{id}")
+    //method delete
+    @DeleteMapping("/{id}") //api/trips/{id}
     public void delete(@PathVariable Long id) {
         tripService.delete(id);
     }
