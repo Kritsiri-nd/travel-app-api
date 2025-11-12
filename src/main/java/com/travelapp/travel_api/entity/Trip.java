@@ -6,46 +6,47 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.type.SqlTypes;
+
 
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 
-@Entity
-@Table(name = "trips")
-@Getter
+
+@Entity // สร้างตารางในฐานข้อมูล
+@Table(name = "trips") // กำหนดชื่อตารางเป็น "trips"
+@Getter 
 @Setter
-@EqualsAndHashCode(of = "id")
-@ToString(exclude = "author")
+@EqualsAndHashCode(of = "id") // เปรียบเทียบ Object โดยใช้ฟิลด์ "id"
+@ToString(exclude = "author") // ไม่รวมฟิลด์ "author" ในการสร้างสตริง
 public class Trip {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // กำหนดให้ฟิลด์นี้เป็น Primary Key
+    private Long id; 
 
-    @Column(nullable = false)
+    @Column(nullable = false) // กำหนดให้ฟิลด์นี้ไม่สามารถเป็นค่า null ได้
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT") // กำหนดชนิดข้อมูลเป็น TEXT ในฐานข้อมูล
     private String description;
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "photos", columnDefinition = "text[]", nullable = false)
-    private String[] photos = new String[0];
+    @ElementCollection 
+    @CollectionTable(name = "trip_photos", joinColumns = @JoinColumn(name = "trip_id")) // สร้างตารางย่อยสำหรับเก็บรูปภาพ
+    @Column(name = "photo_url") 
+    private java.util.List<String> photos = new java.util.ArrayList<>();
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "tags", columnDefinition = "text[]", nullable = false)
-    private String[] tags = new String[0];
+    @ElementCollection
+    @CollectionTable(name = "trip_tags", joinColumns = @JoinColumn(name = "trip_id")) // สร้างตารางย่อยสำหรับเก็บแท็ก
+    @Column(name = "tag")
+    private java.util.List<String> tags = new java.util.ArrayList<>();
 
-    private Double latitude;
+    private Double latitude; 
     private Double longitude;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
+    @ManyToOne(fetch = FetchType.LAZY) // ความสัมพันธ์แบบ Many-to-One กับ Entity User
+    @JoinColumn(name = "author_id") 
     private User author;
 
-    @CreationTimestamp
+    @CreationTimestamp 
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMPTZ")
     private OffsetDateTime createdAt;
 
@@ -53,11 +54,12 @@ public class Trip {
     @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMPTZ")
     private OffsetDateTime updatedAt;
 
-    public void setPhotos(String[] photos) {
-        this.photos = photos != null ? Arrays.copyOf(photos, photos.length) : new String[0];
-    }
+    public void setPhotos(java.util.List<String> photos) { 
+    this.photos = (photos != null) ? new java.util.ArrayList<>(photos) : new java.util.ArrayList<>();
+} 
 
-    public void setTags(String[] tags) {
-        this.tags = tags != null ? Arrays.copyOf(tags, tags.length) : new String[0];
-    }
+public void setTags(java.util.List<String> tags) {
+    this.tags = (tags != null) ? new java.util.ArrayList<>(tags) : new java.util.ArrayList<>();
+}
+
 }
