@@ -1,6 +1,7 @@
 package com.travelapp.travel_api.controller;
 
 import com.travelapp.travel_api.dto.LoginRequest;
+import com.travelapp.travel_api.dto.CurrentUserResponse;
 import com.travelapp.travel_api.dto.LoginResponse;
 import com.travelapp.travel_api.dto.RegisterRequest;
 import com.travelapp.travel_api.security.jwt.JwtTokenProvider;
@@ -14,11 +15,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -56,6 +58,19 @@ public class AuthController {
         );
         String token = jwtTokenProvider.generateToken(authentication);
         return ResponseEntity.status(HttpStatus.CREATED).body(new LoginResponse(token));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<CurrentUserResponse> currentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        return ResponseEntity.ok(new CurrentUserResponse(user.getId(), user.getEmail(), user.getDisplayName()));
     }
 }
 
