@@ -17,10 +17,17 @@ public class TripService {
 
     private final TripRepository tripRepository;
 
-    // Get all trips
-    public List<TripResponse> getAll() {
-        return tripRepository.findAll()
-                .stream()
+    // Get all trips or search by query
+    public List<TripResponse> getTrips(String query) {
+        List<Trip> trips;
+        if (query != null && !query.trim().isEmpty()) {
+            String keyword = query.trim();
+            trips = tripRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
+        } else {
+            trips = tripRepository.findAll();
+        }
+
+        return trips.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }

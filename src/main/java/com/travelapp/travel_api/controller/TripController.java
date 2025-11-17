@@ -17,8 +17,8 @@ public class TripController {
 
     //method get all
     @GetMapping //api/trips
-    public List<TripResponse> getAll() {
-        return tripService.getAll();
+    public List<TripResponse> getAll(@RequestParam(value = "query", required = false) String query) {
+        return tripService.getTrips(query);
     }
 
     //method post
