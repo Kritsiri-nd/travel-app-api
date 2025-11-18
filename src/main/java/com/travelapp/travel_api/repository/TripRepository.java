@@ -8,4 +8,5 @@ import java.util.List;
 // Repository interface for Trip entity
 public interface TripRepository extends JpaRepository<Trip, Long> {
     List<Trip> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String title, String description);
+    List<Trip> findByAuthorId(Long authorId);
 }

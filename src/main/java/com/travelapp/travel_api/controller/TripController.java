@@ -4,6 +4,7 @@ import com.travelapp.travel_api.dto.TripRequest;
 import com.travelapp.travel_api.dto.TripResponse;
 import com.travelapp.travel_api.service.TripService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,8 +22,14 @@ public class TripController {
         return tripService.getTrips(query);
     }
 
+    @GetMapping("/search")
+    public List<TripResponse> search(@RequestParam("query") String query) {
+        return tripService.searchTrips(query);
+    }
+
     //method post
     @PostMapping //api/trips
+    @PreAuthorize("isAuthenticated()")
     public TripResponse create(@RequestBody TripRequest req) {
         return tripService.create(req);
     }
@@ -35,13 +42,20 @@ public class TripController {
 
     //method put
     @PutMapping("/{id}") //api/trips/{id}
+    @PreAuthorize("isAuthenticated()")
     public TripResponse update(@PathVariable Long id, @RequestBody TripRequest req) {
         return tripService.update(id, req);
     }
     //method delete
     @DeleteMapping("/{id}") //api/trips/{id}
+    @PreAuthorize("isAuthenticated()")
     public void delete(@PathVariable Long id) {
         tripService.delete(id);
     }
 
+    @GetMapping("/mine")
+    @PreAuthorize("isAuthenticated()")
+    public List<TripResponse> myTrips() {
+        return tripService.getMyTrips();
+    }
 }
