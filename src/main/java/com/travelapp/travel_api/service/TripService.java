@@ -30,7 +30,7 @@ public class TripService {
         List<Trip> trips;
         if (query != null && !query.trim().isEmpty()) {
             String keyword = query.trim();
-            trips = tripRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
+            trips = tripRepository.searchByKeyword(keyword);
         } else {
             trips = tripRepository.findAll();
         }
