@@ -1,13 +1,15 @@
 package com.travelapp.travel_api.service;
 
 import com.travelapp.travel_api.dto.FileUploadResponse;
+import com.travelapp.travel_api.exception.BadRequestException;
+import com.travelapp.travel_api.exception.InternalServerException;
+import com.travelapp.travel_api.exception.StorageException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -38,15 +40,15 @@ public class FileUploadService {
 
     public FileUploadResponse uploadImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file is required");
+            throw new BadRequestException("file is required");
         }
         if (file.getSize() > MAX_FILE_SIZE_BYTES) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file size exceeds 5 MB limit");
+            throw new BadRequestException("file size exceeds 5 MB limit");
         }
 
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unsupported file type");
+            throw new BadRequestException("unsupported file type");
         }
 
         assertSupabaseConfig();
@@ -70,14 +72,14 @@ public class FileUploadService {
             );
             ResponseEntity<String> response = restTemplate.exchange(requestEntity, String.class);
             if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "failed to upload file to storage");
+                throw new StorageException("failed to upload file to storage");
             }
         } catch (IOException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "unable to read uploaded file", ex);
+            throw new InternalServerException("unable to read uploaded file", ex);
         } catch (RestClientResponseException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Supabase rejected the upload: " + ex.getStatusText(), ex);
+            throw new StorageException("Supabase rejected the upload: " + ex.getStatusText(), ex);
         } catch (RestClientException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "failed to upload file to storage", ex);
+            throw new StorageException("failed to upload file to storage", ex);
         }
 
         return new FileUploadResponse(path, buildPublicUrl(path), contentType, file.getSize());
@@ -85,7 +87,7 @@ public class FileUploadService {
 
     private void assertSupabaseConfig() {
         if (isBlank(supabaseUrl) || isBlank(bucketName) || isBlank(apiKey)) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Supabase configuration is missing");
+            throw new InternalServerException("Supabase configuration is missing");
         }
     }
 
