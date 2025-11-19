@@ -4,9 +4,12 @@ import com.travelapp.travel_api.dto.LoginRequest;
 import com.travelapp.travel_api.dto.CurrentUserResponse;
 import com.travelapp.travel_api.dto.LoginResponse;
 import com.travelapp.travel_api.dto.RegisterRequest;
-import com.travelapp.travel_api.security.jwt.JwtTokenProvider;
 import com.travelapp.travel_api.entity.User;
+import com.travelapp.travel_api.exception.ConflictException;
+import com.travelapp.travel_api.exception.ResourceNotFoundException;
+import com.travelapp.travel_api.exception.UnauthorizedException;
 import com.travelapp.travel_api.repository.UserRepository;
+import com.travelapp.travel_api.security.jwt.JwtTokenProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +23,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -44,7 +46,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
+            throw new ConflictException("Email already registered");
         }
 
         User user = new User();
@@ -63,12 +65,12 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<CurrentUserResponse> currentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
 
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return ResponseEntity.ok(new CurrentUserResponse(user.getId(), user.getEmail(), user.getDisplayName()));
     }

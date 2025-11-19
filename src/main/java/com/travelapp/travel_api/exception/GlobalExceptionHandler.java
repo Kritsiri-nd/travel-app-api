@@ -27,6 +27,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(502).body(body);
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(401, ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(401).body(body);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbidden(ForbiddenException ex, HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(403, ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(403).body(body);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(ConflictException ex, HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(409, ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(409).body(body);
+    }
+
+    @ExceptionHandler(InternalServerException.class)
+    public ResponseEntity<ErrorResponse> handleInternal(InternalServerException ex, HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(500, ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(500).body(body);
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex, HttpServletRequest request) {
         int code = ex.getStatusCode().value();

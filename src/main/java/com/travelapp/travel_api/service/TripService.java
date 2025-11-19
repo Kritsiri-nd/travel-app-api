@@ -4,15 +4,17 @@ import com.travelapp.travel_api.dto.TripRequest;
 import com.travelapp.travel_api.dto.TripResponse;
 import com.travelapp.travel_api.entity.Trip;
 import com.travelapp.travel_api.entity.User;
+import com.travelapp.travel_api.exception.BadRequestException;
+import com.travelapp.travel_api.exception.ForbiddenException;
+import com.travelapp.travel_api.exception.ResourceNotFoundException;
+import com.travelapp.travel_api.exception.UnauthorizedException;
 import com.travelapp.travel_api.repository.TripRepository;
 import com.travelapp.travel_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +44,7 @@ public class TripService {
 
     public List<TripResponse> searchTrips(String query) {
         if (query == null || query.trim().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "query is required");
+            throw new BadRequestException("query is required");
         }
         return getTrips(query);
     }
@@ -65,7 +67,7 @@ public class TripService {
     // Get trip by id
     public TripResponse getById(Long id) {
         Trip trip = tripRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
         return toResponse(trip);
     }
 
@@ -73,7 +75,7 @@ public class TripService {
     public TripResponse update(Long id, TripRequest req) {
         User author = getCurrentUser();
         Trip trip = tripRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
         assertOwnership(trip, author);
 
         if (req.getTitle() != null) trip.setTitle(req.getTitle());
@@ -90,7 +92,7 @@ public class TripService {
     public void delete(Long id) {
         User author = getCurrentUser();
         Trip trip = tripRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
         assertOwnership(trip, author);
         tripRepository.delete(trip);
     }
@@ -120,20 +122,20 @@ public class TripService {
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+            throw new UnauthorizedException("Authentication required");
         }
 
         return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
     }
 
     private void assertOwnership(Trip trip, User user) {
         if (trip.getAuthor() == null || user == null || trip.getAuthor().getId() == null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only modify your own trips");
+            throw new ForbiddenException("You can only modify your own trips");
         }
 
         if (!trip.getAuthor().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only modify your own trips");
+            throw new ForbiddenException("You can only modify your own trips");
         }
     }
 }
