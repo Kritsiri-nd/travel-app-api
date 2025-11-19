@@ -4,6 +4,7 @@ import com.travelapp.travel_api.dto.TripRequest;
 import com.travelapp.travel_api.dto.TripResponse;
 import com.travelapp.travel_api.service.TripService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,13 +16,46 @@ public class TripController {
 
     private final TripService tripService;
 
-    @GetMapping
-    public List<TripResponse> getAll() {
-        return tripService.getAll();
+    //method get all
+    @GetMapping //api/trips
+    public List<TripResponse> getAll(@RequestParam(value = "query", required = false) String query) {
+        return tripService.getTrips(query);
     }
 
-    @PostMapping
+    @GetMapping("/search")
+    public List<TripResponse> search(@RequestParam("query") String query) {
+        return tripService.searchTrips(query);
+    }
+
+    //method post
+    @PostMapping //api/trips
+    @PreAuthorize("isAuthenticated()")
     public TripResponse create(@RequestBody TripRequest req) {
         return tripService.create(req);
+    }
+
+    //method get by id
+    @GetMapping("/{id}") //api/trips/{id}
+    public TripResponse getById(@PathVariable Long id) {
+        return tripService.getById(id);
+    }
+
+    //method put
+    @PutMapping("/{id}") //api/trips/{id}
+    @PreAuthorize("isAuthenticated()")
+    public TripResponse update(@PathVariable Long id, @RequestBody TripRequest req) {
+        return tripService.update(id, req);
+    }
+    //method delete
+    @DeleteMapping("/{id}") //api/trips/{id}
+    @PreAuthorize("isAuthenticated()")
+    public void delete(@PathVariable Long id) {
+        tripService.delete(id);
+    }
+
+    @GetMapping("/mine")
+    @PreAuthorize("isAuthenticated()")
+    public List<TripResponse> myTrips() {
+        return tripService.getMyTrips();
     }
 }
