@@ -1,24 +1,41 @@
 package com.travelapp.travel_api.exception;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
-import lombok.Value;
-
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-
-@Value
-@Builder
 public class ErrorResponse {
 
-    @Builder.Default
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    OffsetDateTime timestamp = OffsetDateTime.now(ZoneOffset.UTC);
+    private int status;
+    private String message;
+    private String path;
 
-    int status;
-    String error;
-    String message;
-    String path;
-    String errorCode;
+    public ErrorResponse() {
+    }
+
+    public ErrorResponse(int status, String message, String path) {
+        this.status = status;
+        this.message = message;
+        this.path = path;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 }
-
