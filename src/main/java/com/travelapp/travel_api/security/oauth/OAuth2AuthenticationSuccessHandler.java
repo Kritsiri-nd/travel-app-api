@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.travelapp.travel_api.entity.User;
 import com.travelapp.travel_api.repository.UserRepository;
 import com.travelapp.travel_api.security.jwt.JwtTokenProvider;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,13 +30,16 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final PasswordEncoder passwordEncoder;
+    private final String oauthSuccessRedirectUrl;
 
     public OAuth2AuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider,
                                               UserRepository userRepository,
-                                              PasswordEncoder passwordEncoder) {
+                                              PasswordEncoder passwordEncoder,
+                                              @Value("${app.frontend.oauth-success-url}") String oauthSuccessRedirectUrl) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.oauthSuccessRedirectUrl = oauthSuccessRedirectUrl;
     }
 
     @Override
@@ -55,15 +61,27 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         );
         String token = jwtTokenProvider.generateToken(auth);
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String acceptHeader = request.getHeader("Accept");
+        boolean wantsJson = acceptHeader != null && acceptHeader.contains(MediaType.APPLICATION_JSON_VALUE);
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("token", token);
-        body.put("email", user.getEmail());
-        body.put("displayName", user.getDisplayName());
+        if (wantsJson) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        response.getWriter().write(objectMapper.writeValueAsString(body));
+            Map<String, Object> body = new HashMap<>();
+            body.put("token", token);
+            body.put("email", user.getEmail());
+            body.put("displayName", user.getDisplayName());
+
+            response.getWriter().write(objectMapper.writeValueAsString(body));
+            return;
+        }
+
+        String targetUrl = UriComponentsBuilder.fromUriString(oauthSuccessRedirectUrl)
+                .queryParam("token", token)
+                .build(true)
+                .toUriString();
+        response.sendRedirect(targetUrl);
     }
 
     private User createUserFromOauth(OAuth2User oAuth2User, String email) {
