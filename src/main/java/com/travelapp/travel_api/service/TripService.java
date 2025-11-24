@@ -1,5 +1,6 @@
 package com.travelapp.travel_api.service;
 
+import com.travelapp.travel_api.dto.AuthorResponse;
 import com.travelapp.travel_api.dto.TripRequest;
 import com.travelapp.travel_api.dto.TripResponse;
 import com.travelapp.travel_api.entity.Trip;
@@ -78,12 +79,18 @@ public class TripService {
                 .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
         assertOwnership(trip, author);
 
-        if (req.getTitle() != null) trip.setTitle(req.getTitle());
-        if (req.getDescription() != null) trip.setDescription(req.getDescription());
-        if (req.getPhotos() != null) trip.setPhotos(new ArrayList<>(req.getPhotos()));
-        if (req.getTags() != null) trip.setTags(new ArrayList<>(req.getTags()));
-        if (req.getLatitude() != null) trip.setLatitude(req.getLatitude());
-        if (req.getLongitude() != null) trip.setLongitude(req.getLongitude());
+        if (req.getTitle() != null)
+            trip.setTitle(req.getTitle());
+        if (req.getDescription() != null)
+            trip.setDescription(req.getDescription());
+        if (req.getPhotos() != null)
+            trip.setPhotos(new ArrayList<>(req.getPhotos()));
+        if (req.getTags() != null)
+            trip.setTags(new ArrayList<>(req.getTags()));
+        if (req.getLatitude() != null)
+            trip.setLatitude(req.getLatitude());
+        if (req.getLongitude() != null)
+            trip.setLongitude(req.getLongitude());
 
         return toResponse(tripRepository.save(trip));
     }
@@ -116,12 +123,22 @@ public class TripService {
         dto.setLongitude(trip.getLongitude());
         dto.setCreatedAt(trip.getCreatedAt());
         dto.setUpdatedAt(trip.getUpdatedAt());
+
+        if (trip.getAuthor() != null) {
+            AuthorResponse authorDto = new AuthorResponse();
+            authorDto.setName(trip.getAuthor().getDisplayName());
+            authorDto.setAvatarUrl(trip.getAuthor().getAvatarUrl());
+            authorDto.setBio(trip.getAuthor().getBio());
+            dto.setAuthor(authorDto);
+        }
+
         return dto;
     }
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
             throw new UnauthorizedException("Authentication required");
         }
 

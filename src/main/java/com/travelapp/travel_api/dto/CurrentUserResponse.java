@@ -9,4 +9,6 @@ public class CurrentUserResponse {
     private final Long id;
     private final String email;
     private final String displayName;
+    private final String avatarUrl;
+    private final String bio;
 }
