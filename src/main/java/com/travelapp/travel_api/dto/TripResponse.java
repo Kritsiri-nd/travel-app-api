@@ -4,7 +4,7 @@ import lombok.Data;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-@Data 
+@Data
 public class TripResponse {
     private Long id;
     private String title;
@@ -15,4 +15,5 @@ public class TripResponse {
     private Double longitude;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+    private AuthorResponse author;
 } // DTO สำหรับการส่งข้อมูลทริปกลับไปยังผู้ใช้

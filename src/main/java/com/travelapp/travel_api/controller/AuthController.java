@@ -1,9 +1,10 @@
 package com.travelapp.travel_api.controller;
 
-import com.travelapp.travel_api.dto.LoginRequest;
 import com.travelapp.travel_api.dto.CurrentUserResponse;
+import com.travelapp.travel_api.dto.LoginRequest;
 import com.travelapp.travel_api.dto.LoginResponse;
 import com.travelapp.travel_api.dto.RegisterRequest;
+import com.travelapp.travel_api.dto.UpdateProfileRequest;
 import com.travelapp.travel_api.entity.User;
 import com.travelapp.travel_api.exception.ConflictException;
 import com.travelapp.travel_api.exception.ResourceNotFoundException;
@@ -19,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,7 +74,47 @@ public class AuthController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return ResponseEntity.ok(new CurrentUserResponse(user.getId(), user.getEmail(), user.getDisplayName()));
+        return ResponseEntity.ok(new CurrentUserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getDisplayName(),
+                user.getAvatarUrl(),
+                user.getBio()
+        ));
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<CurrentUserResponse> updateProfile(
+            Authentication authentication,
+            @Valid @RequestBody UpdateProfileRequest request
+    ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedException("Unauthorized");
+        }
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (request.getDisplayName() != null) {
+            user.setDisplayName(request.getDisplayName());
+        }
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
+        if (request.getBio() != null) {
+            user.setBio(request.getBio());
+        }
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok(new CurrentUserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getDisplayName(),
+                user.getAvatarUrl(),
+                user.getBio()
+        ));
     }
 }
 

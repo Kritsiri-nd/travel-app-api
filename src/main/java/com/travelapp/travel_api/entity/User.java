@@ -12,30 +12,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "users") // กำหนดชื่อตารางเป็น "users"
+@Table(name = "users")
 @Getter
 @Setter
-@EqualsAndHashCode(of = "id") // เปรียบเทียบ Object โดยใช้ฟิลด์ "id"
-@ToString(of = {"id", "email", "displayName"}) // สร้างสตริงโดยใช้ฟิลด์ที่ระบุ
+@EqualsAndHashCode(of = "id")
+@ToString(of = { "id", "email", "displayName" })
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // กำหนดให้ฟิลด์นี้เป็น Primary Key
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 255) // กำหนดให้ฟิลด์นี้ไม่สามารถเป็นค่า null ได้ และต้องไม่ซ้ำกัน
+    @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "password_hash", nullable = false) // กำหนดให้ฟิลด์นี้ไม่สามารถเป็นค่า null ได้
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "display_name", length = 100)  
+    @Column(name = "display_name", length = 100)
     private String displayName;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false) 
+    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY) // ความสัมพันธ์แบบ One-to-Many กับ Entity Trip
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private List<Trip> trips = new ArrayList<>();
 
 }
